@@ -15,7 +15,7 @@ router = APIRouter()
 
 @router.post(
     '/', 
-    summary='Criar um novo atleta',
+    summary='Crie um novo atleta',
     status_code=status.HTTP_201_CREATED,
     response_model=AtletaOut
 )
@@ -93,6 +93,27 @@ async def get(id: UUID4, db_session: DatabaseDependency) -> AtletaOut:
         )
     
     return atleta
+
+
+@router.post(
+    '/{id}/metas',
+    summary="Adicionar metas para o atleta",
+    status_code=status.HTTP_201_CREATED,
+)
+async def add_meta(
+    id: UUID4,
+    db_session: DatabaseDependency,
+    
+):
+    atleta = await db_session.execute(select(AtletaModel).filter_by(id=id)).scalars().first()
+    if not atleta:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Atleta não encontrado.")
+
+    meta = MetaModel(atleta_id=id, **meta_in.dict())
+    db_session.add(meta)
+    await db_session.commit()
+    return meta
+
 
 
 @router.patch(
